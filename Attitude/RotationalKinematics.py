@@ -478,7 +478,7 @@ class MRP:
         return sdot
     
         
-# %% Euler Parameter Class
+# %% Euler Angle Class
 # ang MUST BE in radians
 # ang - 3x1 numpy matrix of first,second,third rotation angle, radians
 # order - tuple of rotation order, e.g. (3,2,1), (3,1,3)
