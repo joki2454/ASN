@@ -21,6 +21,12 @@ def tilde(vec):
             ])
     return mat
 
+def unitvec(vec):
+    if np.shape(vec)[1] != 1:
+        raise(Exception('Shape of input to unitvec must be (n,1)'))
+    u = vec / np.linalg.norm(vec)
+    return u
+
 
 # %% DCM Class
     
@@ -38,7 +44,7 @@ class DCM:
         Q, R = np.linalg.qr(C,mode='complete')
         for i in range(0,3):
             Q[:,i] = np.sign(R[i,i])*Q[:,i]
-        self.C = Q
+        self.C = C
         
     def inv(self):
         return DCM(self.C.T)
