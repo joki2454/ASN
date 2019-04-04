@@ -122,13 +122,16 @@ class DCM:
     def mrp(self):
         C = self.C
         s = np.matrix(np.zeros((3,1)))
-        
-        zeta = np.sqrt( np.trace(C) +1 )
-        den  = zeta*(zeta+2)
-        s[0,0] = ( C[1,2] - C[2,1] ) / den
-        s[1,0] = ( C[2,0] - C[0,2] ) / den
-        s[2,0] = ( C[0,1] - C[1,0] ) / den
-        return MRP(s)
+        zeta = np.sqrt( np.trace(self.C) +1 )
+        if abs(zeta) > 1e-05:
+            den  = zeta*(zeta+2)
+            s[0,0] = ( C[1,2] - C[2,1] ) / den
+            s[1,0] = ( C[2,0] - C[0,2] ) / den
+            s[2,0] = ( C[0,1] - C[1,0] ) / den
+            s = MRP(s)
+        else:
+            s = self.quat().mrp()
+        return s
     
     # DCM_dot = f(DCM,w)
     # w is 3x1 numpy matrix
@@ -422,6 +425,13 @@ class MRP:
         s = self.s
         return MRP( -s / ( s.T.dot(s) ) )
     
+    # return short rotation mrp
+    def shortRotation(self):
+        s = self
+        if np.linalg.norm(self.s) > 1:
+            s = self.shadow()
+        return s
+    
     # MRP_FN = MRP_FB.dot(MRP_BN)
     # MRP_FB = self
     # MRP_BN = mrp
@@ -431,14 +441,11 @@ class MRP:
             raise(Exception('Input to MRP dot method must be an MRP instance'))
         s_FB = self.s
         s_BN = mrp.s
-        
         den = 1 + s_FB.T.dot(s_FB) * s_BN.T.dot(s_BN) - 2*s_BN.T.dot(s_FB)
-        
         # Avoid singularity
         if abs(den) < 1e-05:
             s_FB = s_FB.shadow()
             den = 1 + s_FB.T.dot(s_FB) * s_BN.T.dot(s_BN) - 2*s_BN.T.dot(s_FB)
-            
         s_FN = (np.asscalar((1-s_BN.T.dot(s_BN)))*s_FB +
                 np.asscalar((1-s_FB.T.dot(s_FB)))*s_BN -
                 2*np.cross(s_FB,s_BN,axis=0))
